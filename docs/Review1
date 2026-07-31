@@ -1,0 +1,512 @@
+CLOUD ARCHITECTURE DESIGN 
+
+REVIEW -1 
+PRIYANSHI KAPOOR : 24BIT0206
+PAVNI ARORA : 24BIT0219
+
+AI-Based Container Resource Optimization Framework for Smart Factory Applications using Autonomous Scheduling
+
+Current Work Distribution (Phase-I)
+
+This project is being carried out by a team of two — Pavni Arora (Student 1) and Priyanshi Kapoor (Student 2) — for BCSE355L Cloud Architecture Design. The literature survey of 15 papers was divided evenly, with Pavni covering Papers 1–7, focusing on the smart factory and edge computing angle, and Priyanshi covering Papers 8–15, focusing on Kubernetes and AI-based scheduling techniques. Each student independently conducted the research gap analysis for their own set of papers, ensuring the analysis reflects individual understanding rather than a copied summary of the source material. For the proposed architecture, Pavni is responsible for designing the AWS Cloud Architecture diagram, while Priyanshi is responsible for the Complete System Architecture diagram showing the overall project workflow. The objectives and novelty summary were developed jointly by both students, drawing on insights from both halves of the literature survey. Pavni handled the GitHub repository setup, folder structure, and README documentation, while Priyanshi is responsible for compiling all sections into the final Google Doc submission. AWS services planning was also a shared task, since it depends on both the architecture and the scheduling logic each student researched. Dataset research and description work falls to Priyanshi, given her focus on the technical scheduling papers that most closely relate to dataset selection. Presentation preparation is a shared responsibility between both students.
+
+Future Work Distribution (Phase-II — Implementation)
+
+Once implementation begins, responsibilities will shift toward the technical components each student is better positioned to own based on their Phase-I research focus. Priyanshi will lead development of the AI/ML prediction model, including dataset preprocessing and training the Random Forest or LSTM model used to forecast container resource demand, along with designing and setting up the database schema for storing resource usage history and scheduling logs. Pavni will lead backend development and Kubernetes integration, including the Lambda-based scheduling trigger logic and the connection between the prediction model's output and EKS autoscaling behavior, as well as building the frontend monitoring dashboard for container metrics and scheduling status. AWS deployment — covering EKS cluster setup, IAM and Cognito configuration, and CloudWatch/SNS integration — will be a joint responsibility, since it depends on both the model and backend components working together. Testing and evaluation of the framework against the default Kubernetes HPA baseline will also be shared, as will ongoing documentation updates and preparation of the Phase-II review presentation and demo. This split keeps each student's implementation work aligned with what they researched most deeply in Phase-I, while keeping integration-heavy tasks — AWS deployment and testing — as shared responsibilities so both students understand the full system end to end.
+
+15 RESEARCH PAPERS 
+
+PRIYANSHI KAPOOR- 8 PAPERS
+
+1.	"container orchestration Kubernetes autoscaling"
+2.	"AI-based resource scheduling containers"
+3.	"predictive autoscaling cloud containers"
+4.	"dynamic resource allocation container orchestration machine learning"
+5.	"reinforcement learning task scheduling cloud computing"
+6.	"deep learning workload prediction cloud"
+7.	"reinforcement learning container placement"
+8.	"neural network based job scheduling cloud"
+
+PAPER -1 
+“container orchestration Kubernetes autoscaling”
+Thanh-Tung, N., Yu-Jin, Y., Kim, T., Dae-Heon Park, & Kim, S. (2020). Horizontal pod autoscaling in kubernetes for elastic container orchestration. Sensors, 20(16), 4621. doi:https://doi.org/10.3390/s20164621
+https://www.proquest.com/docview/2436090943?pq-origsite=gscholar&fromopenview=true&sourcetype=Scholarly%20Journals
+
+METHOD 
+An experimental investigation is done (not a new algorithm). Authors first explain Kubernetes architecture and the HPA control loop mechanics , and then run 7 different experiments to evaluate HPA under different conditions 
+1.	Default Kubernetes resource metrics (KRM)
+2.	KRM with different scraping periods
+3.	Prometheus Custom Metrics(PCM)
+4.	PCM with different scrapping periods 
+5.	2-worker vs 4-worker cluster comparison 
+6.	Different custom metrics (HTTP-only vs CPU+HTTP combined )
+7.	With vs without readiness probe
+DATASET 
+No public dataset , a live testbed with synthetic load .
+Setup: a 5-node Kubernetes cluster on a single physical machine running Ubuntu, Docker, Kubernetes
+For load generator Gatling v3.3.1 was used , sending HTTP requests to a CPU intensive test application. Each exp ran for 300s , replica count ranged from 4 min to 24(max).
+ADVANTAGES 
+1.	It’s a first paper that gives a comprehensive architecture level explanation of both Kubernetes and HPA combined with rigorous empirical testing- prior works only covered functional level details .
+2.	KRM vs PCM directly compared that shows KRM updates only once per scraping cycle while PCM can extrapolate and can get frequently updated that leads to faster but less resource efficient scaling .
+3.	It also shows cluster size affects scaling period and response time that is useful for capacity – planning decisions .
+4.	Ends with practical , actionable guidance e.g. recommends KRM for stable load apps and PCM for bursty load apps 
+LIMITATIONS 
+1.	Small-scale , single machine testbed , doesn’t capture real multi-host network latency , HW failure or true distributed system effects.
+2.	Purely reactive – it evaluates only Kubernetes existing rule , does not propose or test any proactive or predictive or AI ML driven scaling mechanism.
+3.	Findings are confined to specific hardware and cant be generalized directly to larger production clusters.
+4.	Uses one synthetic CPU-intensive workload pattern rather than real world , highly production traffic traces .
+5.	Only tests CPU usage and HTTP requests rate as metrics 
+RESEARCH GAP 
+Authors explicitly state the field lacked fundamental architectural level empirical analysis of HPA behaviour and this paper fills that gap .But this paper doesn’t touch that all tested behaviour is reactive . In conclusion future work should develop a more efficient scaling algorithm for Kubernetes 
+
+
+
+
+PAPER 2
+
+“AI-based resource scheduling containers”
+H. Sami, H. Otrok, J. Bentahar and A. Mourad, "AI-Based Resource Provisioning of IoE Services in 6G: A Deep Reinforcement Learning Approach," in IEEE Transactions on Network and Service Management, vol. 18, no. 3, pp. 3527-3540, Sept. 2021, doi: 10.1109/TNSM.2021.3066625.
+ https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9380677&tag=1
+
+method 
+it proposes IScaler , that is a model- free Deep Reinforcement Learning (DRL) solution that performs combined horizontal+ vertical container scaling and service placement simultaneously. To handle DRL’s slow early learning they wrap IScaler inside an ISP module that also includes a heuristic Optimizer as a backup, plus a Solution Switch that hands control from Optimizer.
+
+
+Dataset 
+Google Cluster Usage Traces – that is a real world public dataset from google which contains physical machines grouped into cells with job/task resource requests and CPU/memory availability over time. The authors select three sample jobs and three sample machines from dataset for their experiments, using data pre- processing, cleaning and visualization .Training ran for 2million iterations on this data 
+
+Advantages 
+1.	Truly Proactive (not reactive like standard Kubernetes HPA)- it predicts resource demand and future host availability before scaling 
+2.	Handles combined horizontal +vertical scaling together and multi application scenarios
+3.	Adds service placement as a part of the decision , factoring in priority level and distance-to-user
+4.	The ISP/Optimizer hybrid design cleverly solves DRL’s classic “cold start” problem avoiding poor early decisions that would hurt real applications 
+5.	Outperforms a model based RL baseline especially after sudden demand changes-IScaler reconverges quickly.
+
+Limitations 
+1.	It is very costly to train – needs 2 million iterations to converge, also because of the error agent can make and the time required to learn .
+2.	Experiments use only a small sample from the GCT dataset- not tested at large level
+3.	It is a simulation based , forward -looking study not a live deployment.
+4.	Optimizer is itself not proactive (its used during IScaler’s learning phase)
+
+Research Gap
+It is largely single application , didn’t jointly predict both changing demand and changing host resource availability and lacked integrated service placement. So in future this approach can be scaled at a large scale and also high training cost and time can be reduced.
+
+
+
+Paper 3
+“predictive autoscaling cloud containers"
+
+D. -D. Vu, M. -N. Tran and Y. Kim, "Predictive Hybrid Autoscaling for Containerized Applications," in IEEE Access, vol. 10, pp. 109768-109778, 2022, doi: 10.1109/ACCESS.2022.3214985.
+
+https://ieeexplore.ieee.org/abstract/document/9919851
+
+method 
+proposes a hybrid autoscaling framework which changes both number of pods and resources per pod simultaneously . Four main components :
+1.	Workload Forecasting using a Bi-LSTM DLM to predict next interval demand 
+2.	Burst Identification – it is an online algo using a moving standard-deviation threshold on predicted workload to detect sudden traffic spikes 
+3.	Performance model – it is a decision Tree Regression (DTR) model which maps predicted workload ,pod resource level, response time SLO to number of pods and average utilization
+4.	Hybrid Provisioning Algorithm which uses the burst signal and performance model to decide optimal combination each interval
+5.	Rolling Update Controller which swaps deployments without downtime 
+
+Dataset 
+2 real world public web-traffic traces – the Wikipedia Access trace and FIFA world cup 98 trace. Traffic was replayed using Locust as an HTTP load generator against a real CPU-bound benchmark app on real Kubernetes v1.23 cluster . Data was split 80/20 train/test and then was normalized. 
+
+
+
+
+Advantages 
+1.	True simultaneous hybrid scaling- it is the first paper according to the authors to jointly decide horizontal and vertical scaling at runtime rather than cascading them and avoiding the new pods inherit stale resource config problem of prior hybrid work. 
+2.	Non disruptive vertical scaling via rolling update mechanism which solves vertical scaling’s classic pod restart downtime problem .
+3.	Bi-LSTM outperforms ARIMA<NNLS<OLS and plain LSTM on both RSME and MAE for workload forecasting
+4.	Burst aware design prevents saturated pod problem which during bursts maxes out per pod resources and scales horizontally 
+5.	Strong empirical results
+Limitations :
+1.	High SLO violation percentage than proactive HPA as changing both pods and resource per pod takes longer to execute than horizontal only scaling.
+2.	It doesn’t consider pod placement optimization and uses Kubernetes’ default scheduler rather than custom placement strategy.
+3.	It relies on Kubernetes VPA’s recommendation engine to set r_max /r_min bounds
+4.	It is only tested on a single CPU bound benchmark application
+
+Research Gap:
+Prior work was split in two silos-horizontal only predictive scalers which ensures QoS but waste resources at low load , and vertical only scalers that optimize utilization but risk QoS violations and cause disruption.
+It fills specific gap like simultaneous , burst wave and non disruptive hybrid scaling . 
+
+
+Paper 4 
+dynamic resource allocation container orchestration machine learning
+Zhiheng Zhong, Minxian Xu, Maria Alejandra Rodriguez, Chengzhong Xu, and Rajkumar Buyya. 2022. Machine Learning-based Orchestration of Containers: A Taxonomy and Future Directions. ACM Comput. Surv. 54, 10s, Article 217 (January 2022), 35 pages. https://doi.org/10.1145/3510415
+
+https://dl.acm.org/doi/full/10.1145/3510415
+
+Method 
+Authors searched major academic databases using keywords like “container orchestration”, ”scaling”, ”scheduling” etc then filtered results by relevance to selected 44 articles – a type of systematic literature review is performed .
+They built a taxonomy classifying works along 5 axes: Application Architecture , Infrastructure , Objectives, Behaviour Modeling and Prediction and Resource Provisioning. They then map each of 44 papers into this taxonomy and trace the year by year evolution of ML techniques used.
+
+Dataset
+No dataset as it is a review paper . The data is actually the 44 peer reviewed papers .
+
+
+Advantages 
+1.	Extremely comprehensive scope which covers monolithic , microservice and serverless architectures across single cloud , multi cloud and hybrid cloud infrastructures which most individual papers only touch one slice of .
+2.	Provides genuinely useful taxonomy  that maps ML techniques directly to orchestration sub problems which is extremely handy for structuring literature reviews like yours.
+3.	Includes cheat sheet matching container orchestration problems to potential ML solutions
+4.	Tracks the historical Evolution of techniques giving useful context on where the field is heading 
+5.	Identifies 11 concrete open research gaps 
+Limitations
+1.	It doesn’t generate new experimental results
+2.	Only 44 articles selected therefore some relevant work may have been missed 
+3.	Reviewed literature itself skews heavily toward single cloud environments and microservice architectures so the survey’s conclusions inherit that imbalance 
+
+Research Gap
+It is a research gap finding paper that lists 11 problems 
+1.	No existing solution explicitly no existing solution explicitly links individual microservice status to overall application performance
+2.	graph-based/DAG task scheduling for heterogeneous dependent tasks is barely explored
+3.	serverless function-chain management beyond cold-start mitigation is wide open
+4.	there is no fully integrated end-to-end ML-based orchestration engine — most systems only use ML for prediction while heuristics still make final decisions
+5.	cost analysis of running ML itself for orchestration decisions is under-studied
+This paper lets position all your other individual papers within its taxonomy and cite its identified gaps are motivation for further AI scheduling search 
+
+
+
+Paper 5
+
+reinforcement learning task scheduling cloud computing
+https://link.springer.com/article/10.1186/s13677-023-00553-0
+Wang, Z., Chen, S., Bai, L. et al. Reinforcement learning based task scheduling for environmentally sustainable federated cloud computing. J Cloud Comp 12, 174 (2023). https://doi.org/10.1186/s13677-023-00553-0
+
+Method 
+ERLFC(eco friendly Reinforcement Learning in Federated Cloud) is a task scheduling framework for federated cloud environments that jointly optimizes energy consumption and carbon emissions 
+
+•	Core Algo: Advantage Actor-Critic trained with Proximal Policy Optimization (PPO)
+•	Two level scheduling 
+All subtasks of a single DAG are sent to the same data center to avoid the energy cost of inter task network data transfer.
+The paper also introduces a watermark mechanism to simulate realistic non deterministic task arrival times 
+
+Dataset
+Source: Real World trace data from Google Cluster Dataset
+Each modeled as a DAG with subtask dependencies 
+Advantages 
+1.	Achieves these savings without sacrificing makespan that actually keeps makespan lowest among all compared methods 
+2.	Maintains relatively low task delay/waiting time even as task volume scales up 
+3.	Uses real time state awareness enabling adaptive decisions as load changes 
+Limitations 
+1.	Task execution time is predicted that is not always the ground truth that could introduce scheduling error 
+2.	Model tested via simulation only – no real world deployment / validation on actual  federated cloud infrastructure 
+3.	ERLFC shows frequent task waiting spikes at large scale that suggests scalability limits under extreme load 
+Research GAP
+No existing method combined: 
+1.	federated cloud's geographic energy-source diversity
+2.	cooling-method energy trade-offs (air vs. liquid), and 
+3.	carbon emissions — into one RL-based real-time scheduler 
+This paper's gap-filling contributions: introducing 6 energy types with differing emission ratios across federated data centers, incorporating cooling method switching costs, and building a fast/lightweight neural architecture suited for real-time decisions
+
+
+
+Paper 6
+Deep learning workload prediction cloud
+https://ieeexplore.ieee.org/abstract/document/8301555
+Q. Zhang, L. T. Yang, Z. Yan, Z. Chen and P. Li, "An Efficient Deep Learning Model to Predict Cloud Workload for Industry Informatics," in IEEE Transactions on Industrial Informatics, vol. 14, no. 7, pp. 3170-3178, July 2018, doi: 10.1109/TII.2018.2808910.
+Methods
+CP-SAE (Canonical Polyadic - Stacked AutoEncoder) — a lighter, faster version of a deep learning model used to predict cloud workload.
+The problem it solves: Normal deep learning models (like stacked autoencoders) have too many parameters, so training them takes a long time.
+The trick used: A math technique called Canonical Polyadic (CP) decomposition is used to compress the model's weight matrices into smaller pieces (like breaking a big number into simpler building blocks), so there's much less to train.
+How it works step by step:
+Take a normal stacked autoencoder (a deep learning model that learns patterns by compressing then reconstructing data)
+Convert its weight matrices into tensors (multi-dimensional arrays, like a cube of numbers instead of just a flat table)
+Apply CP decomposition to break these tensors into smaller, simpler pieces (a sum of simple "rank-1" building blocks)
+Train this compressed version using a modified backpropagation algorithm that works directly on the compressed pieces so training is much faster
+End goal: Use this efficient model to predict CPU usage (workload) of virtual machines in the cloud, so cloud companies know in advance how much computing power to allocate (avoids wasting resources or running out of capacity)
+
+
+Datasets
+Source: PlanetLab — a real-world open cloud testing platform with 1000+ virtual machines across ~700 sites worldwide, recording CPU usage every 5 minutes
+First 8 days of data = training, last 2 days = testing
+STL-10 dataset- just to test training speed/efficiency of the compression method, not for actual workload prediction
+
+Advantages
+
+1.	Much faster training
+2.	Fewer parameter
+3.	Better prediction accuracy than older models
+4.	Improvement was especially strong for long-term prediction (60 min), showing it captures underlying patterns better, not just short-term trends
+
+Limitations :
+1.	  No privacy protection: The model doesn't include any privacy-preserving mechanism, even though cloud workload data can be sensitive 
+2.	  Only tested on CPU utilization: Even though the authors claim it could work for memory usage or disk requests, they never actually tested those 
+3.	  Small-scale experiment: Only 20 virtual machines and 10 days of data were used — not clear how well it scales to much larger, longer-term cloud deployments 
+4.	 Compression vs accuracy trade-off still exists: Higher compression (lower rank R) causes bigger accuracy drop — the "sweet spot" (R=32) was chosen somewhat empirically, not from a strict theoretical rule 
+5.	  No comparison against deep reinforcement learning models, which the authors themselves note might perform even better
+Research gap
+Older cloud workload prediction methods used shallow machine learning (plain neural networks, SVM, linear regression) — these can't capture complex, non-linear patterns well in workload data. No existing work had combined deep learning (for accuracy) with tensor decomposition (for speed) specifically for cloud workload prediction . This paper fills that gap: it keeps the accuracy benefits of deep learning while using CP decomposition to massively cut down training time — solving the "deep learning is too slow to train" problem without sacrificing much accuracy
+
+
+
+
+Paper 7
+Reinforcement learning container placement 
+
+H. Sami, A. Mourad, H. Otrok and J. Bentahar, "Demand-Driven Deep Reinforcement Learning for Scalable Fog and Service Placement," in IEEE Transactions on Services Computing, vol. 15, no. 5, pp. 2671-2684, 1 Sept.-Oct. 2022, doi: 10.1109/TSC.2021.3075988.
+https://ieeexplore.ieee.org/abstract/document/9416796
+
+Method 
+IFSP (Intelligent Fog Service Placement) — a smart system that decides where to place services (containers) on fog nodes (small computers near users, like roadside units) before users even ask for them.
+•	The problem it solves: When too many IoT devices (cars, drones, phones) request services, the cloud gets overloaded and slow. Fog computing helps by placing services closer to users — but deciding which service goes on which fog node is extremely hard (NP-hard) because demand keeps changing and resources are limited.
+•	Two smart helper components (this is the clever trick of the paper):
+1.	IFSS (Scheduler) — decides when and where a change is needed, using an algorithm called R-Learning
+2.	Bootstrapper — trains a DRL model offline on the cloud using old server logs before deploying it, so the model isn't "dumb" when it starts
+•	Why this matters: Normal reinforcement learning (RL) makes tons of mistakes while learning ("trial and error"). That's dangerous for real users. The bootstrapper pre-trains the model so it's already smart before going live — this avoids slow learning and bad early decisions.
+•	Core AI Algorithm — DQN (Deep Q-Network): A reinforcement learning brain that learns which action (place, replace, or do nothing) is best for each container, based on the current situation (state)
+•	How the decision-making works (MDP - Markov Decision Process):
+•	State: current demand for each service + which container is placed where + which container is being decided right now
+•	Action: pick a fog to place the service, remove another service and replace it, or do nothing
+•	Cost function (what the AI tries to minimize) : combines 4 goals
+
+Dataset 
+1.	Google cluster trace(GCT): real data showing available servers and services that need to be placed.
+2.	NASA Server Logs(NSL): 2 months of real website traffic logs that is used to simulate realistic changing user demand patterns over time .
+
+
+Advantages 
+1.	Scales well – tested successfully on both small and large setups 
+2.	Adapts to change 
+3.	Adapts to changing priorities too- even when weights of 4 objectives changed 
+4.	Massively beats heuristic algorithms 
+5.	It is Proactive not reactive 
+
+Limitations 
+1.	Relies on bootstrapping quality 
+2.	No real hardware deployment 
+3.	One container at a time 
+4.	Complex, multi -part architecture
+
+Research Gap
+This paper claims to be the first to solve fog/service placement using Deep Reinforcement Learning, filling the gap by combining an efficient MDP design (one-container-at-a-time actions) with an offline bootstrapper to solve both the exploration-error problem and the slow-convergence problem that plagued earlier DRL attempts
+No existing solution combined: proactive prediction + scalable action-space design + fast convergence + real deployment feasibility, specifically for the fog computing service placement problem 
+
+
+
+
+
+
+
+
+
+
+
+Paper 8
+Neural networking based job scheduling cloud 
+https://ieeexplore.ieee.org/abstract/document/9169832
+S. Tuli, S. Ilager, K. Ramamohanarao and R. Buyya, "Dynamic Scheduling for Stochastic Edge-Cloud Computing Environments Using A3C Learning and Residual Recurrent Neural Networks," in IEEE Transactions on Mobile Computing, vol. 21, no. 3, pp. 940-954, 1 March 2022, doi: 10.1109/TMC.2020.3017079.
+
+
+Method 
+A3C-R2N2 — a smart, fast-learning scheduler that decides which edge or cloud computer should run each incoming task, and does it in real time as conditions keep changing.
+•	The problem it solves: In an Edge-Cloud setup, some devices (edge nodes) are close to users and fast to respond but weak in power, while cloud servers are powerful but slower to reach. Deciding which task goes where is hard because: task demand keeps changing, network speed changes (devices are mobile), and machines are all different in power/speed/cost.
+•	Two clever ingredients combined:
+1.	A3C (Asynchronous Advantage Actor-Critic) — instead of one single "brain" learning slowly, this runs many learning agents at once (e.g., on 10+ different edge/cloud nodes), each learning independently and syncing updates periodically. This makes learning much faster and avoids relying on one central point (no single point of failure).
+2.	R2N2 (Residual Recurrent Neural Network) — a neural network with "memory" (recurrent layers) that can spot patterns over time (like "this task's CPU need has been rising lately"), plus "skip connections" (residual links) that make training faster and more stable.
+•	How the decision works:
+•	Input (State): current status of all hosts (CPU/RAM/bandwidth/disk usage, cost, power, response time) + info about tasks that are new or still running
+•	Output (Action): for every task, a ranked list of which host it should go to (not just one guess a full priority list, which is safer and easier to train)
+•	A separate module (Constraint Satisfaction Module) then checks this ranked list and picks the best valid host (skipping ones that are already full or a task that can't be moved)
+•	Loss function (what it tries to minimize): a weighted combination of 5 things energy use, response time, migration time, cost, and SLA violations. The weights can be adjusted depending on what the application cares about most (e.g., healthcare cares about response time, cost-sensitive apps care about running cost)
+•	Special design choice: Rather than giving one fixed action, the model outputs probabilities for all hosts  this makes training much easier and avoids the network getting "stuck" trying to output an exact valid combination directly
+
+Dataset
+•	Bitbrain Dataset : real-world traces of over 1,000 virtual machines' resource usage (CPU, RAM, network, disk) from real business workloads, recorded every 5 minutes
+•	Simulation tool: extended versions of iFogSim and CloudSim (popular cloud/fog simulation toolkits), enhanced to support mobility, bandwidth variation, and edge/cloud cost & power modeling
+
+Advantages 
+1.	Scales well-tested with up to 50 learning agents 
+2.	Adapts to different priorities by changing weights in the loss functions 
+3.	Learns temporal patterns because of recurrent layers 
+
+Limitations 
+1.	Fixed max size
+2.	GPU memory constraint discovered 
+3.	Efficiency drops as agents scale 
+4.	Only tested in simulation 
+5.	No privacy/security consideration 
+
+Research Gap
+No existing work combined: asynchronous multi-agent learning (A3C) + temporal-pattern-aware neural networks (R2N2) + a flexible, tunable multi-objective loss function, specifically for heterogeneous, stochastic Edge-Cloud task scheduling 
+This paper fills that gap: it's designed specifically to handle the combination of decentralized multi-node learning, fast adaptability to changing conditions, and awareness of time-based patterns — none of which prior heuristic or DQN/REINFORCE-based schedulers achieved together
+
+
+
+
+
+
+
+
+
+PAVNI ARORA – 7 PAPERS
+
+1.	"smart factory resource management cloud computing"
+2.	"Industry 4.0 edge cloud container orchestration"
+3.	"AI-driven Industrial IoT resource optimization"
+4.	"cloud-edge computing smart manufacturing scheduling"
+5.	"container-based edge computing industrial applications"
+6.	"energy-aware container scheduling AI"
+7.	"digital twin smart factory cloud architecture"
+
+Paper 1
+Title: A Deadline-Aware Scheduler for Smart Factory using WiFi 6
+Research Gap: The increasing demand for more efficient and precise manufacturing has led to the demand for more smart factories. As the processes become more complex, wired connectivity is getting replaced by wireless technologies such as WiFi, this is not only efficient but also avoids clutter, reduces maintenances costs. An efficient system is needed because failure of processes with non-stringent deadlines might only lead to temporary shutdown but processes with stringent deadlines would lead to shutdown of factory operations or fatal accidents.  A technique typically used for such applications is to first implement such protocols in the digital twin of a factory. Once the digital twin shows acceptable performance, the wireless technology is deployed. This step of integrating the simulation with digital twin leads to a better understanding of bandwidth requirements, the number of packets that miss their latency, and consequences of such misses. Thus, simulation of algorithms used to schedule packets in a specific technology to understand suitability for deployment. WiFi was traditionally not used in factories because of its decentralized nature. This leads to collisions and lack of real-time guarantees. Also, wifi was initially made only for a limited number of users in a small area.
+Proposed Solution: The paper proposes a Deadline-Aware Scheduler (LSDS) for WiFi 6-enabled smart factories. It formulates packet scheduling as a Deadline-aware Parallel Machine Scheduling with Synchronized Start (DPMSS) optimization problem, where packets are assigned priority (profit) based on their importance. Since the problem is NP-hard, the authors develop the Local Search Deadline Scheduling (LSDS) algorithm (and LSDSF for fixed Resource Unit configurations), which uses local search and maximum-weight bipartite matching to allocate WiFi 6 Resource Units (RUs) efficiently. The scheduler prioritizes critical packets, maximizes the total profit of packets delivered before deadlines, and improves real-time communication performance in smart factories.
+Method: Formulates scheduling as a DPMSS optimization problem and solves it using the LSDS approximation algorithm, which combines local search and maximum-weight bipartite matching for WiFi 6 OFDMA resource allocation.
+Advantages:
+• Prioritizes deadline-critical industrial traffic.
+• Achieves higher packet delivery before deadlines than existing schedulers.
+• Reduces critical packet loss.
+• Supports real-time industrial communication using WiFi 6 OFDMA.
+• Has a theoretical approximation guarantee and practical runtime suitable for industrial deployment.
+Limitation:
+•	Validated only through simulations, not real factory deployment.
+•	Assumes known packet arrivals and deadlines.
+•	 Focuses only on WiFi scheduling rather than cloud/container resource management.
+•	Does not use AI or reinforcement learning for adaptive scheduling.
+•	Future work includes handling stochastic packet arrivals and deadlines.
+Dataset: No public dataset is used. The proposed scheduler is evaluated through simulation on five representative smart factory/IIoT scenarios with varying traffic loads. Performance is compared against existing scheduling methods using metrics such as profit ratio, packet drop rate, critical packet drop rate, and execution time.
+Paper Link: https://dl.acm.org/doi/epdf/10.1145/3641512.3686387
+
+Paper 2
+Title: A Comprehensive Review of Key Technologies and Applications in Smart Manufacturing Systems: From Digital Foundations to Intelligent Application
+Research Gap: Despite significant advances in Industrial Internet Platforms (IIP), Digital Twins (DT), and Edge Intelligence (EI), current smart manufacturing solutions continue to face challenges in interoperability, seamless integration, real-time processing, scalability, implementation cost, data silos, and security. Existing studies often address these technologies independently, resulting in fragmented architectures that limit efficient collaboration between cloud, edge, and virtual manufacturing environments. Furthermore, high digital transformation costs and cybersecurity risks hinder large-scale industrial adoption. Therefore, there is a need for an integrated, secure, scalable, and cost-effective smart manufacturing framework that combines IIP, DT, and EI while supporting cross-system data interoperability, intelligent security mechanisms, and sustainable, green manufacturing practices.
+Proposed Solution: The proposed solution is an integrated smart manufacturing framework that combines the strengths of the Industrial Internet Platform (IIP), Digital Twin (DT), and Edge Intelligence (EI) to achieve intelligent, real-time, and efficient manufacturing.
+Method: Systematic literature review of smart manufacturing technologies. The paper reviews three major technologies: Industrial Internet Platform (IIP), Digital Twin (DT), and Edge Intelligence (EI). It analyzes their architectures, features, industrial applications, challenges, and future directions using published research and industrial case studies.
+Advantages:
+• Provides a comprehensive overview of modern smart manufacturing technologies.
+• Explains architectures of IIP, DT, and EI in a structured manner.
+• Includes real industrial case studies from automotive, aerospace, electronics, manufacturing equipment, and energy sectors.
+• Identifies current challenges and future research directions.
+• Useful reference for researchers, industries, and policymakers
+Limitation:
+• No experimental validation or performance evaluation.
+• No new scheduling/resource allocation algorithm is proposed.
+• No benchmark dataset or quantitative comparison is performed.
+• Findings rely on previously published studies and case reports.
+• Recommendations remain conceptual and require practical implementation and validation.
+Dataset: No dataset used. The paper is a review article that summarizes findings from existing literature and industrial implementations (e.g., Siemens, GE, Haier, CASIC, Airbus).
+Paper Link: https://dl.acm.org/doi/10.1145/3778886.3778938
+
+Paper 3
+Title: A Kubernetes custom scheduler based on reinforcement learning for compute intensive pods
+Research Gap: Existing Kubernetes scheduling approaches are primarily designed for general-purpose, network-aware, or edge-cloud environments and do not effectively optimize the placement of compute-intensive containerized workloads. The default Kubernetes scheduler often results in suboptimal resource utilization under dynamic workloads, while many existing AI-based scheduling methods focus on latency or network performance rather than CPU efficiency and energy consumption. Consequently, there is a need for an intelligent scheduling mechanism that can autonomously optimize container placement, improve CPU utilization, reduce energy consumption, and adapt to varying workload characteristics.
+Proposed Solution: The paper proposes two reinforcement learning-based Kubernetes schedulers, SDQN and SDQN-n, built on the Deep Q-Network (DQN) framework. These schedulers autonomously determine optimal pod placement for compute-intensive workloads by learning from cluster states and resource utilization. SDQN minimizes average CPU utilization across cluster nodes, while SDQN-n further consolidates pods onto fewer nodes to reduce energy consumption and enable idle-node shutdown. Compared with the default Kubernetes scheduler and LSTM- and Transformer-based schedulers, the proposed models achieve better resource utilization, lower CPU usage, and improved energy efficiency for cloud-native container orchestration.
+Method: Proposed two custom Kubernetes schedulers: SDQN (Deep Q-Network based Reinforcement Learning) and SDQN-n (DQN with pod consolidation strategy). Compared them with the default Kubernetes scheduler, LSTM-based scheduler, and Transformer-based scheduler. Performance was evaluated using average CPU utilization per node after scheduling compute-intensive pods.
+Advantages: 
+• Reduced average CPU utilization by ~10% (SDQN) and >20% (SDQN-n) compared to the default scheduler.
+• Outperformed LSTM and Transformer schedulers.
+• Better resource utilization for compute-intensive workloads.
+• Supports energy-efficient ("green") data centers by enabling node consolidation and shutdown of idle nodes.
+• Reinforcement learning policy can be tuned for different workload scenarios.
+Limitation: 
+• Evaluated only for compute-intensive workloads; general-purpose workloads were not tested.
+• Experiments were conducted on a small 4-node cluster, limiting scalability evaluation.
+• Focused mainly on CPU utilization; metrics like latency, throughput, and memory performance were not extensively analyzed.
+• SDQN-n's pod consolidation strategy may not be suitable for all workload types or high-availability scenarios.
+• Requires training and tuning of reinforcement learning models before deployment.
+Dataset: No public dataset was used. The authors created a Kubernetes cluster with 4 worker (slave) nodes and generated 50 compute-intensive pods (CPU-bound dummy workloads) to simulate real-world machine learning and scientific computing tasks. Multiple scheduling trials were conducted for comparison.
+Paper Link: https://dl.acm.org/doi/10.1145/3785520.3785532
+
+Paper 4
+Title: Novel Genetic Algorithm with Dual Chromosome Representation for Resource Allocation in Container-Based Clouds
+Research Gap: Existing server consolidation and resource allocation techniques in cloud environments are primarily designed for virtual machine (VM)-based architectures and cannot effectively address the two-level resource allocation problem in container-based clouds, where containers are allocated to virtual machines and virtual machines are allocated to physical machines. Most existing approaches rely on greedy heuristics or predefined VM configurations, which often result in local optimum solutions, inefficient resource utilization, increased migration overhead, and higher energy consumption. Therefore, there is a need for an intelligent optimization approach that can simultaneously optimize container and VM allocation while improving energy efficiency.
+Proposed Solution: The paper proposes a Genetic Algorithm (GA) with a novel dual-chromosome representation for two-level resource allocation in container-based cloud environments. The dual-chromosome encoding simultaneously optimizes container-to-VM allocation and VM-to-physical-machine allocation using customized crossover and mutation operators. By jointly optimizing both allocation levels, the proposed approach achieves better server consolidation, higher resource utilization, lower energy consumption, and improved performance compared with traditional greedy heuristics and existing GA-based methods.
+Method: Dual-Chromosome Genetic Algorithm (GA) for two-level resource allocation in container-based clouds. One chromosome represents container allocation order, while the other represents VM type selection. Uses Next Fit for decoding, Order-1 crossover (container chromosome), Single-point crossover (VM chromosome), Switch mutation, and VM type mutation. The fitness function minimizes the total energy consumption of physical machines.
+
+Advantages:
+• Simultaneously optimizes container-to-VM and VM-to-PM allocation.
+• Novel dual-chromosome representation enables effective crossover operations.
+• Produces significantly lower energy consumption than Best Fit Descending and Single-Chromosome GA.
+• Finds complementary VM type combinations for better PM utilization.
+• Guarantees feasible allocations using Next Fit decoding without extra constraint handling.
+Limitation:
+• Computational time is about 7× longer than Best Fit Descending.
+• Designed for static batch allocation, not dynamic or real-time scheduling.
+• Assumes homogeneous physical machines.
+• VM overbooking is not allowed, limiting flexibility.
+• Performance may decrease when too many VM types are available because the search space becomes larger.
+Dataset: AuverGrid real-world workload trace containing application resource requirements. Four test instances with 100, 200, 500, and 1000 containers were created. Experiments used homogeneous PMs (3300 MHz CPU, 4000 MB memory) and three VM-type configurations (5, 7, and 10 VM types).
+Paper Link: https://ieeexplore.ieee.org/document/8814542
+
+Paper 5
+Title:  Enhancing IIoT infrastructures with Kubernetes: Advanced Edge Cluster Management
+Research Gap: Existing Industrial Internet of Things (IIoT) infrastructures often rely on complex point-to-point communication between industrial devices and software systems, making deployment, management, scalability, and security increasingly difficult. Furthermore, edge devices require centralized configuration and secure lifecycle management to support dynamic manufacturing environments. Therefore, there is a need for a secure, scalable, and standardized edge infrastructure that simplifies deployment, enables centralized management, and supports reliable industrial communication across distributed manufacturing systems.
+Proposed Solution: The paper proposes a Kubernetes-based edge deployment strategy for Industrial Internet of Things (IIoT) infrastructures using the Factory+ framework and the AMRC Connectivity Stack (ACS). The solution employs Kubernetes clusters to centrally deploy, configure, monitor, and manage edge agents that collect machine data, standardize it using Factory+ schemas, and transmit it securely via MQTT to a centralized data warehouse. By leveraging isolated Kubernetes edge clusters, the framework improves scalability, security, reliability, and maintainability while simplifying the management of distributed smart manufacturing infrastructures.
+Method: Proposed a Kubernetes-based edge cluster management architecture for IIoT using the Factory+ framework and AMRC Connectivity Stack (ACS). The solution uses multiple Kubernetes edge clusters, Edge Agents on Cell Gateways, Flux (GitOps) for automated deployment, Helm charts for application deployment, Kerberos for authentication, SealedSecrets for secure credential sharing, MQTT (Sparkplug) for communication, and JSON Schemas to standardize industrial data. Kubernetes provides centralized management, automatic deployment, monitoring, scaling, and self-healing of edge infrastructure.
+Advantages:
+• Secure edge deployment using Kerberos authentication and SealedSecrets.
+• Multiple Kubernetes clusters improve scalability, fault isolation, and security.
+• Centralized management of distributed edge devices.
+• Automated deployment and updates using GitOps (Flux).
+• Kubernetes provides self-healing and automatic workload scheduling.
+• Supports heterogeneous industrial communication protocols (OPC UA, MQTT, Modbus TCP).
+• Standardized data through JSON Schema and Unified Namespace (UNS).
+• Easy integration of new machines and sensors.
+• Remote configuration without physical access to edge devices.
+Limitation:
+
+•	No benchmark or public dataset used.
+•	No quantitative performance evaluation (latency, throughput, CPU, memory, or scalability metrics).
+•	No comparison with existing IIoT/Kubernetes management approaches.
+•	Deployment depends on Kubernetes expertise and infrastructure.
+•	Validation is limited to the AMRC deployment and theoretical use cases.
+•	No detailed evaluation of network overhead, energy consumption, or fault tolerance.
+Dataset: No public dataset was used. Validation was performed using a real-world deployment of the AMRC Connectivity Stack (ACS) at the Advanced Manufacturing Research Centre (AMRC). The deployment includes 4 cities, 9 buildings, CNC machines, PLCs, Building Management Systems (BMS), energy monitoring devices, and public data sources communicating through OPC UA, MQTT, and Modbus TCP protocols.
+Paper Link: https://ieeexplore.ieee.org/document/10710186
+
+Paper 6
+Title: CSFRL: A Reinforcement Learning Technology Enabled Computing Power Scheduling Framework Based on Kubernetes
+Research Gap: Existing Kubernetes scheduling mechanisms rely on the default scheduler, which performs serial pod allocation and lacks the flexibility to support customized scheduling in complex cloud and edge environments. This leads to increased scheduling delays, resource imbalance, reduced resource utilization, unfair task allocation, and inefficient management of heterogeneous computing resources. Furthermore, current Kubernetes scheduling approaches provide limited support for fine-grained resource analysis and intelligent batch scheduling. Therefore, there is a need for an AI-driven scheduling framework capable of fine-grained resource monitoring, adaptive decision-making, and efficient computing resource allocation.
+Proposed Solution: The paper proposes CSFRL (Computing Power Scheduling Framework based on Reinforcement Learning), a Kubernetes-based scheduling framework that uses the Proximal Policy Optimization (PPO) reinforcement learning algorithm for fine-grained computing resource scheduling. The framework consists of three modules: a Monitoring Module for collecting cluster resource information using Prometheus, a Computing Module that employs PPO with resource sorting to generate intelligent scheduling decisions, and a Scheduling Module that deploys microservices to appropriate Kubernetes nodes. By enabling batch scheduling, fine-grained resource analysis, and adaptive scheduling strategies, CSFRL improves resource utilization, scheduling efficiency, and cluster performance compared with the default Kubernetes scheduler.
+
+Method: Proposed CSFRL (Computing Power Scheduling Framework based on Reinforcement Learning) for Kubernetes. The framework consists of three modules: Monitoring Module (collects CPU/memory usage using Prometheus), Computing Module (uses PPO-based reinforcement learning with resource sorting), and Scheduling Module (deploys pods using Kubernetes API). It performs fine-grained CPU analysis and schedules microservices in descending order of CPU demand to improve load balancing and convergence.
+Advantages: 
+•	Supports custom Kubernetes scheduling using reinforcement learning.
+•	Enables fine-grained CPU resource scheduling.
+•	Uses batch scheduling, reducing delays compared to the default scheduler.
+•	PPO with sorting achieves faster convergence and better CPU load balancing.
+•	Outperforms Kubernetes Default Scheduler, PPO, A2C, and Simulated Annealing.
+•	Adapts scheduling decisions to changing workloads through reinforcement learning.
+•	Improves overall computing resource utilization in edge computing environments.
+Limitation:
+•	Considers only CPU resources; memory, storage, GPU, and network bandwidth are not optimized.
+•	Evaluated on a small-scale Kubernetes cluster (1 master, 3 workers).
+•	Uses only the Online Boutique application, limiting workload diversity.
+•	Performance evaluation focuses mainly on CPU load balancing; metrics like latency, throughput, and energy consumption are not considered.
+•	Reinforcement learning requires training time and computational overhead.
+•	Large-scale real-world deployment was not validated.
+Dataset: No public dataset was used. Experiments were conducted using the Online Boutique Microservices Demo Application. CPU usage of 11 microservices was collected using the Hey HTTP stress testing tool. The Kubernetes cluster consisted of 1 master node and 3 worker nodes (NVIDIA Jetson Nano and NVIDIA Jetson Xavier NX devices).
+
+Paper Link: https://ieeexplore.ieee.org/document/10294003
+
+Paper 7
+Title: An ML-Enabled Reinforcement Learning Model for Efficient Cloud Load Balancing
+Research Gap: Existing cloud load-balancing techniques, such as Round Robin and First Come First Serve, fail to adapt to dynamic workloads, resulting in virtual machine overload, poor resource utilization, increased energy consumption, and higher operational costs. Although recent machine learning, genetic algorithm, and reinforcement learning approaches improve certain aspects of scheduling, they often focus on isolated objectives such as energy efficiency, SLA compliance, or autoscaling. Most existing methods lack integrated workload prediction, distributed reinforcement learning, cross-layer VM-container coordination, and simultaneous optimization of resource utilization, energy consumption, and monetary cost. Therefore, there is a need for an intelligent cloud-native scheduling framework that combines predictive analytics, reinforcement learning, autoscaling, and resource-aware optimization for dynamic cloud environments.
+Proposed Solution: The paper proposes a Multi-Agent Reinforcement Learning (MARL)-based dynamic load-balancing framework for cloud computing. The framework integrates machine learning-based workload prediction, Q-Learning and Deep Q-Network (DQN) for intelligent task scheduling, K-Means clustering for virtual machine classification, and Kubernetes-style autoscaling for adaptive resource provisioning. A reward function considering CPU utilization, energy consumption, and monetary cost enables proactive scheduling decisions. Compared with the traditional Round Robin scheduler, the proposed framework achieves better load distribution, lower energy consumption, reduced operational cost, adaptive scalability, and improved system stability.
+Method: Proposed an ML-enabled Multi-Agent Reinforcement Learning (MARL) framework for cloud load balancing. The model combines Linear Regression for workload prediction, K-Means Clustering for VM classification, Q-Learning & Deep Q-Network (DQN) for intelligent task scheduling, and Kubernetes-style autoscaling for dynamic resource allocation. The RL reward function optimizes CPU utilization, energy consumption, and monetary cost simultaneously.
+Advantages: 
+•	Dynamically balances workloads across VMs.
+•	Predicts future CPU workload using ML for proactive scheduling.
+•	Reduces energy consumption and operational costs.
+•	Improves CPU and memory utilization.
+•	Uses MARL for adaptive and distributed decision-making.
+•	K-Means reduces RL action space, improving scheduling efficiency.
+•	Supports Kubernetes-style autoscaling for better scalability.
+•	Outperforms traditional Round Robin scheduling in load balancing, energy efficiency, and resource utilization.
+Limitation: 
+•	Evaluated only in a simulated cloud environment rather than a real cloud deployment.
+•	Uses Linear Regression, which may not accurately capture highly nonlinear workload patterns.
+•	Training MARL/DQN introduces computational overhead compared to traditional schedulers.
+•	Performance under very large-scale cloud infrastructures is not extensively evaluated.
+•	Does not consider network latency, bandwidth, or fault tolerance as optimization objectives.
+•	Results are primarily compared with Round Robin, with limited comparison against other advanced load balancing algorithms.
+
+Dataset: No public dataset was used. The framework relies on simulated cloud workload data, including historical CPU utilization, VM resource usage (CPU, memory), energy consumption, cost metrics, and Kubernetes pod workloads generated within the experimental cloud environment.
+Paper Link: https://ieeexplore.ieee.org/document/11582990
+
+
+
+
+
