@@ -507,6 +507,10 @@ Dataset: No public dataset was used. The framework relies on simulated cloud wor
 Paper Link: https://ieeexplore.ieee.org/document/11582990
 
 
-
-
+OBJECTIVES:
+1. Develop a supervised ML model (Random Forest / LSTM) to predict container-level CPU and memory demand for smart factory workloads using historical usage data.
+2. Design a priority-tagging mechanism that classifies containers as deadline-critical or batch, based on the workload's role in factory operations.
+3. Integrate prediction output with Kubernetes autoscaling (HPA/VPA) to trigger earlier, demand-aware scaling decisions instead of purely reactive ones.
+4. Evaluate the framework's improvement in resource utilization, scaling response time, and critical-task reliability compared to default Kubernetes scheduling.
+5. Document an AWS-based deployment architecture (EKS, Lambda, SageMaker, CloudWatch) for the proposed framework.
 
