@@ -6,6 +6,23 @@ PAVNI ARORA : 24BIT0219
 
 AI-Based Container Resource Optimization Framework for Smart Factory Applications using Autonomous Scheduling
 
+
+Novelty summary 
+Current setups for container scheduling powered by AI - which also include reinforcement-learning schedulers like SDQN/SDQN-n and CSFRL, multi-agent load-balancing methods - rely on techniques like Deep Q-Networks and PPO to decide where to place containers, yet they are only checked on a few cloud or edge workloads. Also, these setups usually only focus on a single resource parameter such as the CPU, and only respond after a surge in traffic rather than proactively anticipating it. Smart factory and industrial Io solutions related to container orchestration research, like Kubernetes-based edge cluster implementations (Factory+/ACS), deadline-aware Wi-Fi 6 packet scheduling, tackle industrial connectivity and timecritical communication but offer no scheduling intelligence based on learning at the container level. There is no article that combines both directions in it. The uniqueness of the project rests on their fusion, that of a system which is equipped with predictive forecasting and is built on top of the native autoscaling capabilities of Kubernetes that helps avoid the problem of purely reactive limitation which is a characteristic of all scheduling literature based on reinforcement learning. Also, the system is capable of introducing a different priority level that separates time-sensitive control/sensor tasks from batch analysis/ML work. This idea was originally introduced at the packet level for scheduling research and now gets applied at the container level in the cloud for industrial use cases.
+
+Our system directly closes the domain-specific gap "not tested on industrial workloads", which is one of the recurring limitations in the AI-based scheduler papers reviewed, by carrying out the testing against smart-factory workload representative patterns instead of generic.cloud tracers. Need it to be further reduced for a specific limit of words, or do you want to see the next part?
+
+Architecture diagram 
+(in google docs)
+
+OBJECTIVES:
+1. Develop a supervised ML model (Random Forest / LSTM) to predict container-level CPU and memory demand for smart factory workloads using historical usage data.
+2. Design a priority-tagging mechanism that classifies containers as deadline-critical or batch, based on the workload's role in factory operations.
+3. Integrate prediction output with Kubernetes autoscaling (HPA/VPA) to trigger earlier, demand-aware scaling decisions instead of purely reactive ones.
+4. Evaluate the framework's improvement in resource utilization, scaling response time, and critical-task reliability compared to default Kubernetes scheduling.
+5. Document an AWS-based deployment architecture (EKS, Lambda, SageMaker, CloudWatch) for the proposed framework.
+
+
 Current Work Distribution (Phase-I)
 
 This project is being carried out by a team of two — Pavni Arora (Student 1) and Priyanshi Kapoor (Student 2) — for BCSE355L Cloud Architecture Design. The literature survey of 15 papers was divided evenly, with Pavni covering Papers 1–7, focusing on the smart factory and edge computing angle, and Priyanshi covering Papers 8–15, focusing on Kubernetes and AI-based scheduling techniques. Each student independently conducted the research gap analysis for their own set of papers, ensuring the analysis reflects individual understanding rather than a copied summary of the source material. For the proposed architecture, Pavni is responsible for designing the AWS Cloud Architecture diagram, while Priyanshi is responsible for the Complete System Architecture diagram showing the overall project workflow. The objectives and novelty summary were developed jointly by both students, drawing on insights from both halves of the literature survey. Pavni handled the GitHub repository setup, folder structure, and README documentation, while Priyanshi is responsible for compiling all sections into the final Google Doc submission. AWS services planning was also a shared task, since it depends on both the architecture and the scheduling logic each student researched. Dataset research and description work falls to Priyanshi, given her focus on the technical scheduling papers that most closely relate to dataset selection. Presentation preparation is a shared responsibility between both students.
@@ -507,10 +524,5 @@ Dataset: No public dataset was used. The framework relies on simulated cloud wor
 Paper Link: https://ieeexplore.ieee.org/document/11582990
 
 
-OBJECTIVES:
-1. Develop a supervised ML model (Random Forest / LSTM) to predict container-level CPU and memory demand for smart factory workloads using historical usage data.
-2. Design a priority-tagging mechanism that classifies containers as deadline-critical or batch, based on the workload's role in factory operations.
-3. Integrate prediction output with Kubernetes autoscaling (HPA/VPA) to trigger earlier, demand-aware scaling decisions instead of purely reactive ones.
-4. Evaluate the framework's improvement in resource utilization, scaling response time, and critical-task reliability compared to default Kubernetes scheduling.
-5. Document an AWS-based deployment architecture (EKS, Lambda, SageMaker, CloudWatch) for the proposed framework.
+
 
