@@ -110,12 +110,12 @@ allocation_df = pd.DataFrame(
 # Calculate utilization
 # --------------------------------------------------
 
-allocation_df["cpu_utilization"] = (
+allocation_df["cluster_cpu_utilization"] = (
     allocation_df["allocated_cpu"]
     / TOTAL_CPU
 )
 
-allocation_df["memory_utilization"] = (
+allocation_df["cluster_memory_utilization"] = (
     allocation_df["allocated_memory"]
     / TOTAL_MEMORY
 )
