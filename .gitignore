@@ -6,3 +6,6 @@ part-*.csv
 "__pycache__/" 
 "*.pyc" 
 dataset/raw/
+__pycache__/
+*.pyc
+dataset/processed/ml_ready_dataset.csv
