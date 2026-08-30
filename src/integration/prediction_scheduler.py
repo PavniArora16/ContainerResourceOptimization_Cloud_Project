@@ -1,7 +1,6 @@
 import pandas as pd
 
 from src.scheduler.priority_manager import (
-    Priority,
     assign_priority
 )
 
@@ -18,12 +17,28 @@ PREDICTION_FILE = (
     "results/predictions.csv"
 )
 
+OUTPUT_FILE = (
+    "results/resource_allocation.csv"
+)
+
+
+# --------------------------------------------------
+# Available cluster resources
+# --------------------------------------------------
+
+TOTAL_CPU = 1.0
+TOTAL_MEMORY = 1.0
+
 
 # --------------------------------------------------
 # Load ML predictions
 # --------------------------------------------------
 
-print("Loading ML predictions...")
+print("----------------------------------------")
+print("ML → SCHEDULER INTEGRATION")
+print("----------------------------------------")
+
+print("\nLoading ML predictions...")
 
 df = pd.read_csv(PREDICTION_FILE)
 
@@ -33,16 +48,20 @@ print(
 
 
 # --------------------------------------------------
-# Create scheduling workload
+# Create scheduling workloads
 # --------------------------------------------------
 
 workloads = []
 
+# Use first 20 predictions for the
+# integration demonstration.
 
 for index, row in df.head(20).iterrows():
 
-    # Temporary priority for integration testing.
-    # Actual trace priority will be integrated later.
+    # Temporary priority mapping for testing.
+    # Actual Google trace priority will be
+    # integrated in the next stage.
+
     priority_value = index % 12
 
     priority = assign_priority(
@@ -50,28 +69,26 @@ for index, row in df.head(20).iterrows():
     )
 
     workloads.append({
+
         "task_id": row["task_id"],
 
         "priority": priority,
 
-        "predicted_cpu": row["predicted_cpu"],
+        "predicted_cpu": float(
+            row["predicted_cpu"]
+        ),
 
-        "predicted_memory": row["predicted_memory"]
+        "predicted_memory": float(
+            row["predicted_memory"]
+        )
     })
-
-
-# --------------------------------------------------
-# Available resources
-# --------------------------------------------------
-
-TOTAL_CPU = 1.0
-
-TOTAL_MEMORY = 1.0
 
 
 # --------------------------------------------------
 # Run resource allocator
 # --------------------------------------------------
+
+print("\nRunning resource allocator...")
 
 allocations = allocate_resources(
     workloads,
@@ -81,7 +98,7 @@ allocations = allocate_resources(
 
 
 # --------------------------------------------------
-# Convert result to DataFrame
+# Convert results to DataFrame
 # --------------------------------------------------
 
 allocation_df = pd.DataFrame(
@@ -90,22 +107,42 @@ allocation_df = pd.DataFrame(
 
 
 # --------------------------------------------------
+# Calculate utilization
+# --------------------------------------------------
+
+allocation_df["cpu_utilization"] = (
+    allocation_df["allocated_cpu"]
+    / TOTAL_CPU
+)
+
+allocation_df["memory_utilization"] = (
+    allocation_df["allocated_memory"]
+    / TOTAL_MEMORY
+)
+
+
+# --------------------------------------------------
 # Save allocation results
 # --------------------------------------------------
 
-output_file = (
-    "results/resource_allocation.csv"
-)
-
 allocation_df.to_csv(
-    output_file,
+    OUTPUT_FILE,
     index=False
 )
 
 
 # --------------------------------------------------
-# Display results
+# Display summary
 # --------------------------------------------------
+
+total_allocated_cpu = (
+    allocation_df["allocated_cpu"].sum()
+)
+
+total_allocated_memory = (
+    allocation_df["allocated_memory"].sum()
+)
+
 
 print("\n----------------------------------------")
 print("RESOURCE ALLOCATION COMPLETED")
@@ -115,6 +152,28 @@ print(
     allocation_df.to_string(index=False)
 )
 
+print("\n----------------------------------------")
+print("RESOURCE SUMMARY")
+print("----------------------------------------")
+
 print(
-    f"\nSaved to: {output_file}"
+    f"Total CPU available: {TOTAL_CPU}"
+)
+
+print(
+    f"Total CPU allocated: "
+    f"{total_allocated_cpu:.4f}"
+)
+
+print(
+    f"Total Memory available: {TOTAL_MEMORY}"
+)
+
+print(
+    f"Total Memory allocated: "
+    f"{total_allocated_memory:.4f}"
+)
+
+print(
+    f"\nSaved to: {OUTPUT_FILE}"
 )
