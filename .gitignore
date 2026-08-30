@@ -2,3 +2,6 @@ smart_factory_workload.csv
 part-*.csv
 part-*.csv.gz
 part-*.csv
+"results/models/" 
+"__pycache__/" 
+"*.pyc" 
