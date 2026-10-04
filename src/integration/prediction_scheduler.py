@@ -1,6 +1,11 @@
 import pandas as pd
 import sys
-
+from src.config import (
+    PREDICTION_FILE,
+    ALLOCATION_FILE,
+    TOTAL_CPU,
+    TOTAL_MEMORY
+)
 # Make stdout UTF-8 compatible on Windows
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(
@@ -21,21 +26,13 @@ from src.scheduler.resource_allocator import (
 # File paths
 # --------------------------------------------------
 
-PREDICTION_FILE = (
-    "results/predictions.csv"
-)
 
-OUTPUT_FILE = (
-    "results/resource_allocation.csv"
-)
 
 
 # --------------------------------------------------
 # Available cluster resources
 # --------------------------------------------------
 
-TOTAL_CPU = 1.0
-TOTAL_MEMORY = 1.0
 
 
 # --------------------------------------------------
@@ -70,10 +67,16 @@ for index, row in df.iterrows():
     # Actual Google trace priority will be
     # integrated in the next stage.
 
-    priority_value = index % 12
+    # Calculate priority from predicted resource demand.
+# Higher CPU + memory demand receives higher priority.
+
+    resource_score = (
+        float(row["predicted_cpu"])
+        + float(row["predicted_memory"])
+    ) * 100
 
     priority = assign_priority(
-        priority_value
+        resource_score
     )
 
     workloads.append({
@@ -138,7 +141,7 @@ allocation_df["cluster_memory_utilization"] = (
 # --------------------------------------------------
 
 allocation_df.to_csv(
-    OUTPUT_FILE,
+    ALLOCATION_FILE,
     index=False
 )
 
@@ -187,5 +190,5 @@ print(
 )
 
 print(
-    f"\nSaved to: {OUTPUT_FILE}"
+    f"\nSaved to: {ALLOCATION_FILE}"
 )
