@@ -10,5 +10,35 @@ This folder will contain the API and orchestration logic that connects the predi
 ## Tech Stack (planned)
 Python (Flask/FastAPI) — to be finalized during implementation phase.
 
-## Status
-Not yet implemented — Phase-I is planning and architecture only.
+
+# Backend - Container Resource Optimization
+
+The backend provides a REST API for the ML-based container resource
+optimization system.
+
+## Technology
+
+- Python
+- FastAPI
+- Uvicorn
+- Pandas
+
+## Architecture
+
+```text
+ML Prediction
+     |
+     v
+Prediction CSV
+     |
+     v
+Resource Scheduler
+     |
+     v
+Allocation CSV
+     |
+     v
+FastAPI Backend
+     |
+     v
+React Frontend

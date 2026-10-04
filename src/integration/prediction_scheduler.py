@@ -1,4 +1,12 @@
 import pandas as pd
+import sys
+
+# Make stdout UTF-8 compatible on Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(
+        encoding="utf-8",
+        errors="replace"
+    )
 
 from src.scheduler.priority_manager import (
     assign_priority
