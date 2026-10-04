@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 import sys
-
+import json
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -141,7 +141,7 @@ def get_allocations():
 
         return {
             "count": len(df),
-            "allocations": dataframe_to_records(df)
+            "allocations": json.loads(df.to_json(orient="records"))
         }
 
     except FileNotFoundError as e:

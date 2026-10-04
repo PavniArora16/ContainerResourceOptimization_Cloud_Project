@@ -9,3 +9,10 @@ dataset/raw/
 __pycache__/
 *.pyc
 dataset/processed/ml_ready_dataset.csv
+# Frontend
+src/frontend/node_modules/
+src/frontend/dist/
+
+# Python cache
+__pycache__/
+*.pyc

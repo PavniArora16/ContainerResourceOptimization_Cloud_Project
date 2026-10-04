@@ -61,10 +61,10 @@ print(
 
 workloads = []
 
-# Use first 20 predictions for the
+
 # integration demonstration.
 
-for index, row in df.head(20).iterrows():
+for index, row in df.iterrows():
 
     # Temporary priority mapping for testing.
     # Actual Google trace priority will be
@@ -118,13 +118,17 @@ allocation_df = pd.DataFrame(
 # Calculate utilization
 # --------------------------------------------------
 
+# --------------------------------------------------
+# Calculate cumulative cluster utilization
+# --------------------------------------------------
+
 allocation_df["cluster_cpu_utilization"] = (
-    allocation_df["allocated_cpu"]
+    allocation_df["allocated_cpu"].cumsum()
     / TOTAL_CPU
 )
 
 allocation_df["cluster_memory_utilization"] = (
-    allocation_df["allocated_memory"]
+    allocation_df["allocated_memory"].cumsum()
     / TOTAL_MEMORY
 )
 
