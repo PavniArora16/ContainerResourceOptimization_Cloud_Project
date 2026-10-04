@@ -5,6 +5,7 @@ import json
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from src.config import TOTAL_CPU, TOTAL_MEMORY
 
 
 # ============================================================
@@ -189,8 +190,8 @@ def get_metrics():
             allocations["allocated_memory"].sum()
         )
 
-        total_cpu_available = 1.0
-        total_memory_available = 1.0
+        total_cpu_available = TOTAL_CPU
+        total_memory_available = TOTAL_MEMORY
 
         cpu_utilization = (
             total_cpu_allocated / total_cpu_available
