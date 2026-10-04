@@ -1,72 +1,134 @@
-import pandas as pd
-import joblib
-
+import argparse
 from pathlib import Path
 
-
-# --------------------------------------------------
-# Load models
-# --------------------------------------------------
-
-CPU_MODEL = Path(
-    "results/models/cpu_model.pkl"
-)
-
-MEMORY_MODEL = Path(
-    "results/models/memory_model.pkl"
-)
-
-
-cpu_model = joblib.load(CPU_MODEL)
-
-memory_model = joblib.load(MEMORY_MODEL)
+import joblib
+import pandas as pd
 
 
 # --------------------------------------------------
-# Example workload
+# Paths
 # --------------------------------------------------
 
-sample = pd.DataFrame({
-    "previous_cpu_1": [0.20],
-    "previous_cpu_2": [0.18],
-    "previous_cpu_3": [0.15],
+CPU_MODEL = Path("results/models/cpu_model.pkl")
+MEMORY_MODEL = Path("results/models/memory_model.pkl")
 
-    "previous_memory_1": [0.30],
-    "previous_memory_2": [0.28],
-    "previous_memory_3": [0.25],
-
-    "cpu_usage": [0.22],
-    "memory_usage": [0.32],
-
-    "time_gap_seconds": [5]
-})
+OUTPUT_FILE = Path("results/predictions.csv")
 
 
 # --------------------------------------------------
-# Make predictions
+# Model features
 # --------------------------------------------------
 
-predicted_cpu = cpu_model.predict(
-    sample
-)[0]
-
-predicted_memory = memory_model.predict(
-    sample
-)[0]
+FEATURES = [
+    "previous_cpu_1",
+    "previous_cpu_2",
+    "previous_cpu_3",
+    "previous_memory_1",
+    "previous_memory_2",
+    "previous_memory_3",
+    "cpu_usage",
+    "memory_usage",
+    "time_gap_seconds",
+]
 
 
 # --------------------------------------------------
-# Display prediction
+# Prediction
 # --------------------------------------------------
 
-print("----------------------------------------")
-print("RESOURCE DEMAND PREDICTION")
-print("----------------------------------------")
+def predict(input_file):
 
-print(
-    f"Predicted CPU usage    : {predicted_cpu:.6f}"
-)
+    print("----------------------------------------")
+    print("RESOURCE DEMAND PREDICTION")
+    print("----------------------------------------")
 
-print(
-    f"Predicted Memory usage : {predicted_memory:.6f}"
-)
+    print(f"\nLoading: {input_file}")
+
+    df = pd.read_csv(input_file)
+
+    print(f"Rows loaded: {len(df):,}")
+
+    missing_columns = [
+        column
+        for column in FEATURES
+        if column not in df.columns
+    ]
+
+    if missing_columns:
+        raise ValueError(
+            "Missing required feature columns: "
+            + ", ".join(missing_columns)
+        )
+
+    # Load trained models
+    cpu_model = joblib.load(CPU_MODEL)
+    memory_model = joblib.load(MEMORY_MODEL)
+
+    # Remove rows that cannot be predicted
+    prediction_df = df.dropna(
+        subset=FEATURES
+    ).copy()
+
+    print(
+        f"Rows available for prediction: "
+        f"{len(prediction_df):,}"
+    )
+
+    # Prepare features
+    X = prediction_df[FEATURES]
+
+    # Generate predictions
+    prediction_df["predicted_cpu"] = (
+        cpu_model.predict(X)
+    )
+
+    prediction_df["predicted_memory"] = (
+        memory_model.predict(X)
+    )
+
+    # Save results
+    OUTPUT_FILE.parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    prediction_df.to_csv(
+        OUTPUT_FILE,
+        index=False
+    )
+
+    print("\n----------------------------------------")
+    print("PREDICTION COMPLETED")
+    print("----------------------------------------")
+
+    print(
+        f"Predicted rows: "
+        f"{len(prediction_df):,}"
+    )
+
+    print(
+        f"Saved to: {OUTPUT_FILE}"
+    )
+
+
+# --------------------------------------------------
+# Command-line interface
+# --------------------------------------------------
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description="Predict CPU and memory demand"
+    )
+
+    parser.add_argument(
+        "--input",
+        default="dataset/processed/ml_ready_dataset.csv",
+        help="ML-ready CSV file"
+    )
+
+    args = parser.parse_args()
+
+    predict(
+        Path(args.input)
+    )

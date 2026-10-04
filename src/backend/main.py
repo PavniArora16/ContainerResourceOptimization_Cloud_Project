@@ -219,9 +219,9 @@ def get_metrics():
             status_counts.get("PARTIAL", 0)
         )
 
-        unmet_allocations = int(
-            status_counts.get("UNMET", 0)
-        )
+        not_allocated = int(
+        status_counts.get("NOT_ALLOCATED", 0)
+)
 
         # ----------------------------------------------------
         # Priority distribution
@@ -264,10 +264,10 @@ def get_metrics():
             },
 
             "allocation_status": {
-                "FULL": full_allocations,
-                "PARTIAL": partial_allocations,
-                "UNMET": unmet_allocations
-            },
+    "FULL": full_allocations,
+    "PARTIAL": partial_allocations,
+    "NOT_ALLOCATED": not_allocated
+},
 
             "priority_distribution": priority_counts
         }
