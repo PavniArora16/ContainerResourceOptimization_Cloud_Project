@@ -3,7 +3,8 @@ import subprocess
 import sys
 import json
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
+import uuid
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import TOTAL_CPU, TOTAL_MEMORY
 
@@ -18,6 +19,11 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 
 PREDICTIONS_FILE = RESULTS_DIR / "predictions.csv"
 ALLOCATIONS_FILE = RESULTS_DIR / "resource_allocation.csv"
+# ============================================================
+# OPTIMIZATION JOB STATUS
+# ============================================================
+
+optimization_jobs = {}
 
 
 # ============================================================
@@ -285,72 +291,156 @@ def get_metrics():
             status_code=500,
             detail=f"Could not calculate metrics: {str(e)}"
         )
-
-
 # ============================================================
-# RUN OPTIMIZATION PIPELINE
+# BACKGROUND OPTIMIZATION
 # ============================================================
 
-@app.post("/run-optimization")
-def run_optimization():
+def run_pipeline_background(job_id: str, input_file: Path):
+    """
+    Run the complete optimization pipeline in the background.
+    """
+
+    optimization_jobs[job_id] = {
+        "status": "running",
+        "message": "Optimization pipeline is running."
+    }
 
     try:
-
-        print("Starting ML → Scheduler pipeline...")
 
         result = subprocess.run(
             [
                 sys.executable,
-                "-m",
-                "src.integration.prediction_scheduler"
+                "run_pipeline.py",
+                "--input",
+                str(input_file)
             ],
             cwd=str(PROJECT_ROOT),
             capture_output=True,
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=120
+            timeout=1200
         )
 
         if result.returncode != 0:
 
-            raise HTTPException(
-                status_code=500,
-                detail={
-                    "message": "Optimization pipeline failed.",
-                    "stdout": result.stdout,
-                    "stderr": result.stderr
-                }
-            )
+            optimization_jobs[job_id] = {
+                "status": "failed",
+                "message": "Optimization pipeline failed.",
+                "output": result.stdout,
+                "error": result.stderr
+            }
 
-        # ----------------------------------------------------
-        # Load newly generated allocation results
-        # ----------------------------------------------------
+            return
 
-        allocations = load_csv(ALLOCATIONS_FILE)
-
-        return {
-            "status": "success",
-            "message": "ML prediction and resource allocation completed.",
-            "tasks_processed": len(allocations),
-            "output_file": "results/resource_allocation.csv",
-            "pipeline_output": result.stdout
+        optimization_jobs[job_id] = {
+            "status": "completed",
+            "message": "Optimization completed successfully.",
+            "output": result.stdout
         }
 
     except subprocess.TimeoutExpired:
 
+        optimization_jobs[job_id] = {
+            "status": "failed",
+            "message": "Optimization pipeline timed out."
+        }
+
+    except Exception as e:
+
+        optimization_jobs[job_id] = {
+            "status": "failed",
+            "message": str(e)
+        }
+
+# ============================================================
+# RUN OPTIMIZATION PIPELINE
+# ============================================================
+
+# ============================================================
+# RUN OPTIMIZATION PIPELINE
+# ============================================================
+
+@app.post("/run-optimization")
+async def run_optimization(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...)
+):
+
+    if not file.filename:
         raise HTTPException(
-            status_code=504,
-            detail="Optimization pipeline timed out."
+            status_code=400,
+            detail="No file was provided."
         )
 
-    except HTTPException:
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only CSV files are supported."
+        )
 
-        raise
+    upload_dir = (
+        PROJECT_ROOT
+        / "dataset"
+        / "raw"
+        / "user_uploads"
+    )
+
+    upload_dir.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    # Prevent directory traversal through uploaded filenames
+    safe_filename = Path(file.filename).name
+
+    input_file = upload_dir / safe_filename
+
+    try:
+
+        file_content = await file.read()
+
+        with open(input_file, "wb") as f:
+            f.write(file_content)
+
+        job_id = str(uuid.uuid4())
+
+        optimization_jobs[job_id] = {
+            "status": "queued",
+            "message": "Optimization job has been queued.",
+            "filename": safe_filename
+        }
+
+        background_tasks.add_task(
+            run_pipeline_background,
+            job_id,
+            input_file
+        )
+
+        return {
+            "status": "started",
+            "message": "Optimization started successfully.",
+            "job_id": job_id,
+            "filename": safe_filename
+        }
 
     except Exception as e:
 
         raise HTTPException(
             status_code=500,
-            detail=f"Optimization failed: {str(e)}"
+            detail=f"Could not start optimization: {str(e)}"
         )
+    # ============================================================
+# OPTIMIZATION STATUS
+# ============================================================
+
+@app.get("/optimization-status/{job_id}")
+def get_optimization_status(job_id: str):
+
+    if job_id not in optimization_jobs:
+        raise HTTPException(
+            status_code=404,
+            detail="Optimization job not found."
+        )
+
+    return optimization_jobs[job_id]

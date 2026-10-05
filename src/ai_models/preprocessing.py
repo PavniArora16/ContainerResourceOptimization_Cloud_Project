@@ -268,74 +268,94 @@ df["memory_usage"] = pd.to_numeric(
 # Convert timestamps
 # --------------------------------------------------
 
-df["start_time"] = pd.to_numeric(
-    df["start_time"],
-    errors="coerce"
-)
+def convert_timestamp_column(series, column_name):
+    """
+    Convert either numeric or datetime timestamps
+    into seconds.
+    """
 
-if "end_time" in df.columns:
-
-    df["end_time"] = pd.to_numeric(
-        df["end_time"],
+    # First try numeric timestamps
+    numeric_values = pd.to_numeric(
+        series,
         errors="coerce"
     )
 
+    numeric_ratio = (
+        numeric_values.notna().sum()
+        / max(len(series), 1)
+    )
 
-# --------------------------------------------------
-# Automatically determine timestamp scale
-# --------------------------------------------------
+    # If most values are numeric, determine the unit
+    if numeric_ratio >= 0.8:
 
-median_timestamp = (
-    df["start_time"]
-    .dropna()
-    .abs()
-    .median()
-)
+        median_timestamp = (
+            numeric_values
+            .dropna()
+            .abs()
+            .median()
+        )
 
-# Timestamp conversion
-#
-# This dataset uses microseconds.
-# The CLI can later allow users to explicitly specify
-# seconds, milliseconds, microseconds, or nanoseconds.
+        if median_timestamp < 1e11:
+            divisor = 1
+            time_unit = "seconds"
 
-time_unit = "microseconds"
+        elif median_timestamp < 1e14:
+            divisor = 1_000
+            time_unit = "milliseconds"
 
-if time_unit == "nanoseconds":
-    divisor = 1_000_000_000
-elif time_unit == "microseconds":
-    divisor = 1_000_000
-elif time_unit == "milliseconds":
-    divisor = 1_000
-elif time_unit == "seconds":
-    divisor = 1
-else:
-    raise ValueError(f"Unsupported time unit: {time_unit}")
+        elif median_timestamp < 1e17:
+            divisor = 1_000_000
+            time_unit = "microseconds"
 
-print(
-    f"Detected timestamp divisor: {divisor} "
-    f"({time_unit})"
-)
+        else:
+            divisor = 1_000_000_000
+            time_unit = "nanoseconds"
+
+        print(
+            f"Detected {column_name} as numeric "
+            f"timestamp: {time_unit}"
+        )
+
+        return numeric_values / divisor
+
+    # Otherwise treat it as a datetime string
+    datetime_values = pd.to_datetime(
+        series,
+        errors="coerce"
+    )
+
+    print(
+        f"Detected {column_name} as datetime timestamp"
+    )
+
+    # Convert datetime to Unix seconds
+    result = pd.Series(
+        float("nan"),
+        index=series.index
+    )
+
+    valid = datetime_values.notna()
+
+    result.loc[valid] = (
+        datetime_values.loc[valid]
+        - pd.Timestamp("1970-01-01")
+    ).dt.total_seconds()
+
+    return result
 
 
-df["start_time_seconds"] = (
-    df["start_time"]
-    / divisor
+df["start_time_seconds"] = convert_timestamp_column(
+    df["start_time"],
+    "start_time"
 )
 
 
 if "end_time" in df.columns:
 
-    df["end_time_seconds"] = (
-        df["end_time"]
-        / divisor
+    df["end_time_seconds"] = convert_timestamp_column(
+        df["end_time"],
+        "end_time"
     )
-
-
-print(
-    f"\nDetected timestamp divisor: "
-    f"{divisor}"
-)
-
 
 # --------------------------------------------------
 # Remove invalid resource measurements
