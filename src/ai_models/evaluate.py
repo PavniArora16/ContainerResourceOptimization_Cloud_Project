@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
 # --------------------------------------------------
 # Load predictions
 # --------------------------------------------------
@@ -10,23 +9,19 @@ df = pd.read_csv(
     "results/predictions.csv"
 )
 
-
 # --------------------------------------------------
 # CPU prediction graph
 # --------------------------------------------------
 
 plt.figure(figsize=(10, 5))
-
 plt.plot(
     df["next_cpu"].values[:200],
     label="Actual CPU"
 )
-
 plt.plot(
     df["predicted_cpu"].values[:200],
     label="Predicted CPU"
 )
-
 plt.xlabel("Test observation")
 
 plt.ylabel("CPU usage")
