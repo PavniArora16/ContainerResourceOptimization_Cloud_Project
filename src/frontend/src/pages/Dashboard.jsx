@@ -134,6 +134,8 @@ const handleOptimization = async () => {
       }
 
       const statusData = await statusResponse.json();
+      console.log("OPTIMIZATION STATUS:", statusData);
+
 
       if (statusData.status === "completed") {
 
@@ -142,6 +144,8 @@ const handleOptimization = async () => {
         setOptimizationStatus(
           "Optimization completed successfully."
         );
+
+        setOptimizing(false);
 
         await loadDashboard();
 
@@ -224,7 +228,7 @@ const handleOptimization = async () => {
     metrics?.allocation_status?.PARTIAL ?? 0;
 
   const unmetAllocations =
-    metrics?.allocation_status?.UNMET ?? 0;
+    metrics?.allocation_status?.NOT_ALLOCATED ?? 0
 
   return (
 

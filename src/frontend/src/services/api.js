@@ -19,7 +19,11 @@ export const getAllocations = async () => {
   return response.data;
 };
 
-export const runOptimization = async () => {
-  const response = await API.post("/run-optimization");
+export const runOptimization = async (formData) => {
+  const response = await API.post(
+    "/run-optimization",
+    formData
+  );
+
   return response.data;
 };
