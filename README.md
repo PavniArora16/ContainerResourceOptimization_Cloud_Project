@@ -1,8 +1,8 @@
 # AI-Based Container Resource Optimization Framework for Smart Factory Applications using Predictive Autonomous Scheduling
 
 ## Team Members
-- Pavni Arora
-- Priyanshi Kapoor
+- Pavni Arora - 24BIT0219
+- Priyanshi Kapoor - 24BIT0206
 
 ## Problem Statement
 Smart factories run mixed, unpredictable container workloads — deadline-critical control and sensor tasks alongside batch tasks like analytics and ML inference — on constrained, heterogeneous edge-cloud infrastructure. Existing AI-based container scheduling frameworks (reinforcement learning schedulers, hybrid autoscalers) are designed and validated for generic cloud or edge workloads, typically optimize a single resource dimension such as CPU alone, and react to load rather than predicting it. Existing smart-factory and IIoT container orchestration work, on the other hand, focuses on deployment and connectivity (Kubernetes edge clusters, MQTT/OPC-UA integration) but includes no learning-based scheduling intelligence. As a result, there is no framework that combines predictive, AI-driven scheduling with the deadline and resource constraints specific to smart factory workloads — leading to inefficient resource utilization, delayed response to demand spikes, and risk to time-critical industrial processes.
