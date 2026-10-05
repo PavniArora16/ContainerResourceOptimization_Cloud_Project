@@ -22,6 +22,8 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [optimizationStatus, setOptimizationStatus] = useState("");
 
   // ---------------------------------------
   // Load dashboard data
@@ -83,31 +85,103 @@ function Dashboard() {
   // Run optimization
   // ---------------------------------------
 
-  const handleOptimization = async () => {
+const handleOptimization = async () => {
 
-    try {
+  if (!selectedFile) {
+    setError("Please select a CSV dataset first.");
+    return;
+  }
 
-      setOptimizing(true);
-      setError("");
+  try {
 
-      await runOptimization();
+    setOptimizing(true);
+    setError("");
+    setOptimizationStatus("Uploading dataset...");
 
-      await loadDashboard();
+    const formData = new FormData();
 
-    } catch (err) {
+    formData.append("file", selectedFile);
 
-      console.error(err);
+    const response = await runOptimization(formData);
 
-      setError(
-        "Optimization failed. Check the backend."
+    const jobId = response.job_id;
+
+    if (!jobId) {
+      throw new Error("Backend did not return a job ID.");
+    }
+
+    setOptimizationStatus(
+      "Dataset uploaded. Optimization is running..."
+    );
+
+    // Wait for the background optimization job
+    let completed = false;
+
+    while (!completed) {
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 2000)
       );
 
-    } finally {
+      const statusResponse = await fetch(
+        `http://127.0.0.1:8000/optimization-status/${jobId}`
+      );
 
-      setOptimizing(false);
+      if (!statusResponse.ok) {
+        throw new Error(
+          "Unable to check optimization status."
+        );
+      }
 
+      const statusData = await statusResponse.json();
+
+      if (statusData.status === "completed") {
+
+        completed = true;
+
+        setOptimizationStatus(
+          "Optimization completed successfully."
+        );
+
+        await loadDashboard();
+
+      }
+
+      else if (statusData.status === "failed") {
+
+        throw new Error(
+          statusData.message ||
+          "Optimization pipeline failed."
+        );
+
+      }
+
+      else {
+
+        setOptimizationStatus(
+          "Optimization is running..."
+        );
+
+      }
     }
-  };
+
+  } catch (err) {
+
+    console.error(err);
+
+    setError(
+      err.message ||
+      "Optimization failed. Check the backend."
+    );
+
+    setOptimizationStatus("");
+
+  } finally {
+
+    setOptimizing(false);
+
+  }
+};
 
   // ---------------------------------------
   // Loading
@@ -179,17 +253,40 @@ function Dashboard() {
 
           </div>
 
-          <button
-            className="optimization-button"
-            onClick={handleOptimization}
-            disabled={optimizing}
-          >
+          <div className="optimization-controls">
 
-            {optimizing
-              ? "Running..."
-              : "Run Optimization"}
+            <label className="file-upload">
 
-          </button>
+              <span>
+                {selectedFile
+                  ? selectedFile.name
+                  : "Choose CSV Dataset"}
+              </span>
+
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => {
+                  setSelectedFile(e.target.files[0] || null);
+                }}
+                disabled={optimizing}
+              />
+
+            </label>
+
+            <button
+              className="optimization-button"
+              onClick={handleOptimization}
+              disabled={optimizing || !selectedFile}
+            >
+
+              {optimizing
+                ? "Running..."
+                : "Run Optimization"}
+
+            </button>
+
+          </div>
 
         </div>
 
