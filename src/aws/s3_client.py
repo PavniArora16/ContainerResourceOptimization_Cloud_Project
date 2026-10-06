@@ -22,16 +22,33 @@ def upload_file(local_file, s3_key):
             f"File not found: {local_file}"
         )
 
-    s3_client.upload_file(
-        str(local_file),
-        BUCKET_NAME,
-        s3_key
-    )
+    try:
+        s3_client.upload_file(
+            str(local_file),
+            BUCKET_NAME,
+            s3_key
+        )
 
-    print(
-        f"Uploaded {local_file} -> "
-        f"s3://{BUCKET_NAME}/{s3_key}"
-    )
+        print(
+            f"Uploaded {local_file} -> "
+            f"s3://{BUCKET_NAME}/{s3_key}"
+        )
+
+        return {
+            "success": True,
+            "bucket": BUCKET_NAME,
+            "key": s3_key
+        }
+
+    except Exception as e:
+        print(
+            f"S3 upload failed for {local_file}: {e}"
+        )
+
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 
 def upload_project_results():
@@ -58,4 +75,3 @@ def upload_project_results():
 
     for local_file, s3_key in files_to_upload.items():
         upload_file(local_file, s3_key)
-

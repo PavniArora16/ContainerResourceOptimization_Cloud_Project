@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import TOTAL_CPU, TOTAL_MEMORY
+from src.aws.s3_client import upload_file
 
 
 # ============================================================
@@ -333,10 +334,51 @@ def run_pipeline_background(job_id: str, input_file: Path):
 
             return
 
+                # Upload pipeline outputs to S3
+        s3_uploads = []
+
+        files_to_upload = [
+            (
+                PREDICTIONS_FILE,
+                "predictions/predictions.csv"
+            ),
+            (
+                ALLOCATIONS_FILE,
+                "allocations/resource_allocation.csv"
+            ),
+            (
+                RESULTS_DIR / "models" / "cpu_model.pkl",
+                "models/cpu_model.pkl"
+            ),
+            (
+                RESULTS_DIR / "models" / "memory_model.pkl",
+                "models/memory_model.pkl"
+            )
+        ]
+
+        for local_file, s3_key in files_to_upload:
+            upload_result = upload_file(
+                local_file,
+                s3_key
+            )
+
+            if not upload_result["success"]:
+                raise RuntimeError(
+                    f"S3 upload failed for {local_file}: "
+                    f"{upload_result.get('error', 'Unknown error')}"
+                )
+
+            s3_uploads.append({
+                "file": str(local_file),
+                "s3_key": s3_key,
+                "success": True
+            })
+
         optimization_jobs[job_id] = {
             "status": "completed",
-            "message": "Optimization completed successfully.",
-            "output": result.stdout
+            "message": "Optimization completed and results uploaded to S3.",
+            "output": result.stdout,
+            "s3_uploads": s3_uploads
         }
 
     except subprocess.TimeoutExpired:
