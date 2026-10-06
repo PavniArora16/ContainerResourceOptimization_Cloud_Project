@@ -2,4 +2,4 @@ fastapi
 uvicorn[standard]
 pandas
 scikit-learn
-#boto3
+boto3

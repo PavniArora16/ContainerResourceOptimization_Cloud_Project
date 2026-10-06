@@ -2,7 +2,7 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
-
+from src.aws.s3_client import upload_project_results
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
@@ -125,3 +125,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    print("\nUploading project results to AWS S3...")
+    upload_project_results()
+    print("AWS S3 upload completed successfully.")    
