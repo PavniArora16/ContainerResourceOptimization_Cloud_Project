@@ -1,11 +1,13 @@
 import pandas as pd
 import sys
+
 from src.config import (
     PREDICTION_FILE,
     ALLOCATION_FILE,
     TOTAL_CPU,
     TOTAL_MEMORY
 )
+
 # Make stdout UTF-8 compatible on Windows
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(
@@ -20,19 +22,6 @@ from src.scheduler.priority_manager import (
 from src.scheduler.resource_allocator import (
     allocate_resources
 )
-
-
-# --------------------------------------------------
-# File paths
-# --------------------------------------------------
-
-
-
-
-# --------------------------------------------------
-# Available cluster resources
-# --------------------------------------------------
-
 
 
 # --------------------------------------------------
@@ -58,22 +47,15 @@ print(
 
 workloads = []
 
-
-# integration demonstration.
-
 for index, row in df.iterrows():
 
-    # Temporary priority mapping for testing.
-    # Actual Google trace priority will be
-    # integrated in the next stage.
-
     # Calculate priority from predicted resource demand.
-# Higher CPU + memory demand receives higher priority.
+    # Higher CPU + memory demand receives higher priority.
 
     resource_score = (
         float(row["predicted_cpu"])
         + float(row["predicted_memory"])
-    ) 
+    )
 
     priority = assign_priority(
         resource_score
@@ -91,6 +73,14 @@ for index, row in df.iterrows():
 
         "predicted_memory": float(
             row["predicted_memory"]
+        ),
+
+        "start_time_seconds": float(
+            row["start_time_seconds"]
+        ),
+
+        "end_time_seconds": float(
+            row["end_time_seconds"]
         )
     })
 
@@ -112,28 +102,7 @@ allocations = allocate_resources(
 # Convert results to DataFrame
 # --------------------------------------------------
 
-allocation_df = pd.DataFrame(
-    allocations
-)
-
-
-# --------------------------------------------------
-
-# --------------------------------------------------
-
-# --------------------------------------------------
-# Calculate cumulative cluster utilization
-# --------------------------------------------------
-
-allocation_df["cluster_cpu_utilization"] = (
-    allocation_df["allocated_cpu"].cumsum()
-    / TOTAL_CPU
-)
-
-allocation_df["cluster_memory_utilization"] = (
-    allocation_df["allocated_memory"].cumsum()
-    / TOTAL_MEMORY
-)
+allocation_df = allocations
 
 
 # --------------------------------------------------

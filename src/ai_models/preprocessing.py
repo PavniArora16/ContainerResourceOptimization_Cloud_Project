@@ -496,6 +496,13 @@ ml_columns = [
     "next_memory"
 ]
 
+# Keep end time if the input dataset contains it
+if "end_time_seconds" in ml_df.columns:
+    ml_columns.insert(
+        2,
+        "end_time_seconds"
+    )
+
 
 ml_df = ml_df[
     ml_columns
