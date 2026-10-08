@@ -189,24 +189,28 @@ def get_metrics():
         # Allocation metrics
         # ----------------------------------------------------
 
-        total_cpu_allocated = float(
-            allocations["allocated_cpu"].sum()
-        )
-
-        total_memory_allocated = float(
-            allocations["allocated_memory"].sum()
-        )
-
         total_cpu_available = TOTAL_CPU
         total_memory_available = TOTAL_MEMORY
 
-        cpu_utilization = (
-            total_cpu_allocated / total_cpu_available
-        ) * 100
+        # Peak simultaneous resource usage.
+        # The allocator releases resources when tasks finish,
+        # so cumulative sum is not a valid utilization measure.
 
-        memory_utilization = (
-            total_memory_allocated / total_memory_available
-        ) * 100
+        peak_cpu_utilization = (
+            allocations["cluster_cpu_utilization"].max()
+        )
+
+        peak_memory_utilization = (
+            allocations["cluster_memory_utilization"].max()
+        )
+
+        peak_cpu_allocated = (
+            peak_cpu_utilization * total_cpu_available
+        )
+
+        peak_memory_allocated = (
+            peak_memory_utilization * total_memory_available
+        )
 
         # ----------------------------------------------------
         # Allocation status
@@ -253,20 +257,20 @@ def get_metrics():
             "cpu": {
                 "available": total_cpu_available,
                 "allocated": round(
-                    total_cpu_allocated, 4
+                    peak_cpu_allocated, 4
                 ),
                 "utilization_percent": round(
-                    cpu_utilization, 2
+                    peak_cpu_utilization * 100, 2
                 )
             },
 
             "memory": {
                 "available": total_memory_available,
                 "allocated": round(
-                    total_memory_allocated, 4
+                    peak_memory_allocated, 4
                 ),
                 "utilization_percent": round(
-                    memory_utilization, 2
+                    peak_memory_utilization * 100, 2
                 )
             },
 

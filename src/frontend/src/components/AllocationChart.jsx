@@ -19,18 +19,21 @@ function AllocationChart({ allocations = [] }) {
       value: allocations.filter(
         (item) => item.allocation_status === "FULL"
       ).length,
+      fill: "#0088FE"
     },
     {
       name: "PARTIAL",
       value: allocations.filter(
         (item) => item.allocation_status === "PARTIAL"
       ).length,
+      fill: "#00C49F"
     },
     {
       name: "UNMET",
       value: allocations.filter(
         (item) => item.allocation_status === "UNMET"
       ).length,
+      fill: "#FF8042"
     },
   ];
 
