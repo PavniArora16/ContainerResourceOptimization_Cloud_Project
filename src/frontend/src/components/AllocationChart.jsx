@@ -90,11 +90,13 @@ function AllocationChart({ allocations = [] }) {
             <Bar
               dataKey="cpu"
               name="CPU"
+              fill="#8884d8"
             />
 
             <Bar
               dataKey="memory"
               name="Memory"
+              fill="#82ca9d"
             />
           </BarChart>
         </ResponsiveContainer>
