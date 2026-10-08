@@ -31,7 +31,7 @@ function AllocationChart({ allocations = [] }) {
     {
       name: "UNMET",
       value: allocations.filter(
-        (item) => item.allocation_status === "UNMET"
+        (item) => item.allocation_status === "NOT_ALLOCATED"
       ).length,
       fill: "#FF8042"
     },
