@@ -9,18 +9,14 @@ class Priority(IntEnum):
 
 
 def assign_priority(priority_value):
-    """
-    Convert a numerical priority value
-    into a scheduling priority.
-    """
 
-    if priority_value >= 9:
+    if priority_value >= 1.5:
         return Priority.CRITICAL
 
-    elif priority_value >= 5:
+    elif priority_value >= 1.0:
         return Priority.HIGH
 
-    elif priority_value >= 2:
+    elif priority_value >= 0.5:
         return Priority.MEDIUM
 
     else:
@@ -28,9 +24,4 @@ def assign_priority(priority_value):
 
 
 def priority_score(priority):
-    """
-    Return a numerical score that can be
-    used by the resource allocator.
-    """
-
     return int(priority)

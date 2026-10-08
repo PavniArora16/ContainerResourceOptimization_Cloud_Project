@@ -73,7 +73,7 @@ for index, row in df.iterrows():
     resource_score = (
         float(row["predicted_cpu"])
         + float(row["predicted_memory"])
-    ) * 100
+    ) 
 
     priority = assign_priority(
         resource_score

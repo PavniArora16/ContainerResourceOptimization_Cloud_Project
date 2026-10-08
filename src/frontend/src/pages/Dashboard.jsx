@@ -256,43 +256,64 @@ const handleOptimization = async () => {
             </p>
 
           </div>
+        </div>
 
           <div className="optimization-controls">
 
-            <label className="file-upload">
+              <label className="file-upload">
 
-              <span>
-                {selectedFile
-                  ? selectedFile.name
-                  : "Choose CSV Dataset"}
-              </span>
+                <div className="upload-text">
 
-              <input
-                type="file"
-                accept=".csv"
-                onChange={(e) => {
-                  setSelectedFile(e.target.files[0] || null);
-                }}
-                disabled={optimizing}
-              />
+                  <span className="upload-title">
+                    {selectedFile
+                      ? selectedFile.name
+                      : "Upload Workload Dataset"}
+                  </span>
 
-            </label>
+                  <span className="upload-subtitle">
+                    {selectedFile
+                      ? `${(selectedFile.size / 1024).toFixed(1)} KB selected`
+                      : "Choose a CSV workload file"}
+                  </span>
 
-            <button
-              className="optimization-button"
-              onClick={handleOptimization}
-              disabled={optimizing || !selectedFile}
-            >
+                </div>
 
-              {optimizing
-                ? "Running..."
-                : "Run Optimization"}
+                <span className="browse-button">
+                  Browse<br></br>
+                </span>
 
-            </button>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => {
+                    setSelectedFile(e.target.files[0] || null);
+                  }}
+                  disabled={optimizing}
+                />
 
+              </label>
+
+              <button
+                className="optimization-button"
+                onClick={handleOptimization}
+                disabled={optimizing || !selectedFile}
+              >
+
+                {optimizing
+                  ? "Running..."
+                  : "Run Optimization"}
+
+              </button>
+                <br></br>
+                <br></br>
           </div>
-
-        </div>
+          
+          {optimizationStatus && (
+          <div className="optimization-status">
+            <span className="status-indicator"></span>
+            {optimizationStatus}
+          </div>)}
+          
 
         {/* -------------------------------- */}
         {/* Error */}

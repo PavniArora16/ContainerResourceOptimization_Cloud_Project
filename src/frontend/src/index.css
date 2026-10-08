@@ -103,23 +103,50 @@ button {
 
 .optimization-button {
   border: none;
-
-  padding: 13px 22px;
-
+  padding: 14px 24px;
   border-radius: 10px;
-
   background: #2563eb;
   color: white;
-
   font-size: 15px;
   font-weight: 600;
-
   cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s ease;
 }
 
-.optimization-button:hover {
+.optimization-button:hover:not(:disabled) {
   background: #1d4ed8;
+  transform: translateY(-1px);
 }
+
+.optimization-button:disabled {
+  background: #aeb9cc;
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.optimization-status {
+  margin-top: 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13px;
+  color: #475467;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+}
+
+
 
 .metrics-grid {
   display: grid;
